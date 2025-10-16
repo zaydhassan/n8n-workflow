@@ -1,0 +1,410 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "38aaee41-9ce0-483c-9ab2-ec4eb1ae8a17",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1eABhL1qdPj05DJ0",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e2ade689-5bc9-40da-b624-609df85d1cfb",
+              "name": "name",
+              "value": "=Test User",
+              "type": "string"
+            },
+            {
+              "id": "0f299046-ee92-4b3a-b5a5-809340fb7f04",
+              "name": "email",
+              "value": "=test@example.com",
+              "type": "string"
+            },
+            {
+              "id": "decc4161-f217-4cfe-8c21-1b9b8031d86a",
+              "name": "company",
+              "value": "=Demo Inc",
+              "type": "string"
+            },
+            {
+              "id": "49cf42b2-f92c-4c4a-951e-631e24148632",
+              "name": "message",
+              "value": "=I am interested in a demo.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "a5450088-4983-4485-8cea-3440d0689448",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an AI assistant that reads lead inquiry messages and classifies the sales intent as one of: \"High Intent\", \"Medium Intent\", or \"Low Intent\". Respond only with a valid JSON object like: {\"category\": \"High Intent\", \"confidence\": 0.95}. The category should best match the intent you find, and confidence is a float between 0 and 1.",
+              "role": "model"
+            },
+            {
+              "content": "={{ $json[\"message\"] }}\n"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "4d93ebec-85bb-44ec-9d93-28fcc7b6410a",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "HAXB5N2uyZ0f7dt6",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e7a1a582-b5b4-4332-9f26-723ee6a64a28",
+              "leftValue": "={{$json[\"content\"][\"parts\"][0][\"text\"].match(/\"category\":\\s*\"([^\"]+)\"/)[1]}}",
+              "rightValue": "High Intent",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        752,
+        0
+      ],
+      "id": "86d93d32-3241-40d5-9384-0490a74ef99a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1b6rrzQuKwMN3D4f20ZztmK-x6kysooOYZQZg03rNG4Q",
+          "mode": "list",
+          "cachedResultName": "Lead CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b6rrzQuKwMN3D4f20ZztmK-x6kysooOYZQZg03rNG4Q/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1b6rrzQuKwMN3D4f20ZztmK-x6kysooOYZQZg03rNG4Q/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{$node[\"Edit Fields\"].json[\"name\"]}}",
+            "email": "={{$node[\"Edit Fields\"].json[\"email\"]}}",
+            "company": "={{$node[\"Edit Fields\"].json[\"company\"]}}",
+            "message": "={{$node[\"Edit Fields\"].json[\"message\"]}}",
+            "category": "={{$node[\"Message a model\"].json[\"content\"][\"parts\"][0][\"text\"].match(/\"category\":\\s*\"([^\"]+)\"/)[1]}}",
+            "confidence ": "={{$node[\"Message a model\"].json[\"content\"][\"parts\"][0][\"text\"].match(/\"confidence\":\\s*([\\d.]+)/)[1]}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "confidence ",
+              "displayName": "confidence ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1024,
+        -32
+      ],
+      "id": "494d059e-d125-496e-8a2b-c90235df1c53",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "5NYRhtibSS36t6d7",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$node[\"Edit Fields\"].json[\"email\"]}}",
+        "subject": "\"Interested in a Demo?\"",
+        "emailType": "text",
+        "message": "\"Thank you for your interest! We'd love to schedule a demo and show you how we can help. Please reply with your availability or click here to book a time with us!\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        160
+      ],
+      "id": "8625dffc-eb25-4190-9b9f-3ebd654902fc",
+      "name": "Send a message",
+      "webhookId": "4bc8fb52-8067-47e7-a759-5fd597a07dc1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "1eABhL1qdPj05DJ0",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1428302551178023034",
+          "mode": "list",
+          "cachedResultName": "Zayd's server",
+          "cachedResultUrl": "https://discord.com/channels/1428302551178023034"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1428302551761162323",
+          "mode": "list",
+          "cachedResultName": "general",
+          "cachedResultUrl": "https://discord.com/channels/1428302551178023034/1428302551761162323"
+        },
+        "content": "=New lead received!\nName: {{$node[\"Edit Fields\"].json[\"name\"]}}\nEmail: {{$node[\"Edit Fields\"].json[\"email\"]}}\nCompany: {{$node[\"Edit Fields\"].json[\"company\"]}}\nMessage: {{$node[\"Edit Fields\"].json[\"message\"]}}\nCategory: {{$node[\"Message a model\"].json[\"content\"][\"parts\"][0][\"text\"].match(/\"category\":\\s*\"([^\"]+)\"/)[1]}}\nConfidence: {{$node[\"Message a model\"].json[\"content\"][\"parts\"][0][\"text\"].match(/\"confidence\":\\s*([\\d.]+)/)[1]}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        -32
+      ],
+      "id": "cbb662ca-c8d0-4b07-9281-c3bf956bc7d1",
+      "name": "Send a message1",
+      "webhookId": "c1f9ed32-ac59-4aa7-b752-ab2e2c939c0f",
+      "credentials": {
+        "discordBotApi": {
+          "id": "ZRaASAIiJvMDWUC9",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        112
+      ],
+      "id": "f3db7cb4-9cda-4761-b6cf-178360b34a9c",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9018372a-7b45-4529-91ca-15cd8a611a9e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2412ad0dd31fffec60680a7a9ceb96f1e3b659ebcddc15e882741c29b0f9cee8"
+  },
+  "id": "bP8fnuzVxKdRIUuF",
+  "tags": []
+}
