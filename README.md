@@ -22,6 +22,6 @@ This n8n workflow automates the entire lead qualification process from incoming 
 ## Notes
 - Demo values can be inserted for testing by editing the “Edit Fields” node.
 - The workflow includes basic error handling and modular design for easy customization.
-- Webhook support allows manual triggering for integration and testing
+- Webhook support allows manual triggering for integration and testing.
 
 ---
