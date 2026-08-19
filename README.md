@@ -1,4 +1,4 @@
-# n8n Lead Qualification Automation .
+# n8n Lead Qualification Automation 
 
 ## Overview 
 This n8n workflow automates the entire lead qualification process from incoming emails. It extracts lead details, uses AI to categorize intent, logs leads into a Google Sheet CRM, sends automated follow-up emails, and notifies the sales team via Discord.
