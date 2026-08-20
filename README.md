@@ -18,10 +18,3 @@ This n8n workflow automates the entire lead qualification process from incoming 
 3. Configure the Discord bot token and specify your server & channel for notifications.
 4. Modify the “Message a model” node with your OpenAI API key.
 5. Test by sending a sample email or using the Manual Trigger node.
-
-## Notes
-- Demo values can be inserted for testing by editing the “Edit Fields” node.
-- The workflow includes basic error handling and modular design for easy customization.
-- Webhook support allows manual triggering for integration and testing.
-
----
